@@ -97,7 +97,8 @@ while running:
         if pressed[pygame.K_i]:
             d += 5
     screen.fill((0, 0, 0))
-    figure = move(move_matrix,figure)
+    if not (move_matrix[0] == 0 and move_matrix[1] == 0 and move_matrix == 0):
+        figure = move(move_matrix,figure)
     figure = rotation(rotation_matrix, figure)
     for current_points in figure:
         drawFigure(current_points)

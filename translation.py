@@ -38,9 +38,12 @@ def rotation(change, figures):
     for i in range(len(figures)):
         for j in range(len(figures[i])):
             point = figures[i][j]
-            position = [[point[0]],[point[1]],[point[2]],[1]]
-            moved_point = np.matmul(matrix_x, position)
-            moved_point = np.matmul(matrix_y, moved_point)
-            moved_point = np.matmul(matrix_z, moved_point)
+            moved_point = [[point[0]],[point[1]],[point[2]],[1]]
+            if change[0] != 0:
+                moved_point = np.matmul(matrix_x, moved_point)
+            if change[1] != 0:
+                moved_point = np.matmul(matrix_y, moved_point)
+            if change[2] != 0:
+                moved_point = np.matmul(matrix_z, moved_point)
             figures[i][j] = [moved_point[0][0],moved_point[1][0],moved_point[2][0]]
     return figures
