@@ -67,6 +67,7 @@ def calc_value(var, value):
 def handle_depth_overlapping(figure_one, figure_two):
     if figure_one[1] > figure_two[0]:
         return False
+        
     curren_figure_one = figure_one[2]
     current_figure_two = figure_two[2]
 
@@ -98,17 +99,20 @@ def handle_depth_overlapping(figure_one, figure_two):
     value_two_camera = calc_value(plane_two, [0,0,0])
     cond_test_3 = True
     for el in curren_figure_one:
+        if -0.001 <= calc_value(plane_two,el) <= 0.001:
+            continue
         if value_two_camera * calc_value(plane_two,el) > 0:
             cond_test_3 = False
     if cond_test_3:
         return False
     cond_test_4 = True
     for el in current_figure_two:
+        if -0.001 <= calc_value(plane_one,el) <= 0.001:
+            continue
         if value_one_camera * calc_value(plane_one,el) < 0:
             cond_test_4 = False
     if cond_test_4:
         return False
-      
     return True
 
 def sortFigure(figure):
@@ -126,6 +130,7 @@ def sortFigure(figure):
             sorted_by_z.append([max_z, min_z, current_figure, len(sorted_by_z)])
 
     result = []
+    order = []
     while len(sorted_by_z) != 0:
         for i in range(len(sorted_by_z)):
             cond = True
@@ -135,44 +140,10 @@ def sortFigure(figure):
                         cond = False
             if cond:
                 result.append(sorted_by_z[i][2])
+                order.append(sorted_by_z[i][3])
                 sorted_by_z.remove(sorted_by_z[i])
                 break
-    return result
-
-    # b = 1 
-    # while b != 0:    
-    #     b = 0    
-    #     for i in range(len(sorted_by_z)):
-    #         for j in range(i, len(sorted_by_z)):
-    #             if sorted_by_z[i][0] > sorted_by_z[j][0] and sorted_by_z[i][1] < sorted_by_z[j][0]:
-    #                 if handle_depth_overlapping(sorted_by_z[i][2], sorted_by_z[j][2]):
-    #                         if i < j:
-    #                             temp = sorted_by_z[i]
-    #                             sorted_by_z[i] = sorted_by_z[j]
-    #                             sorted_by_z[j] = temp
-    #                             b += 1
-    #             elif sorted_by_z[i][0] < sorted_by_z[j][0] and sorted_by_z[j][1] < sorted_by_z[i][0]:
-    #                 if handle_depth_overlapping(sorted_by_z[j][2], sorted_by_z[i][2]):
-    #                         if j < i:
-    #                             temp = sorted_by_z[i]
-    #                             sorted_by_z[i] = sorted_by_z[j]
-    #                             sorted_by_z[j] = temp
-    #                             b += 1
-                 
-    # for i in range(len(sorted_by_z)):
-    #     for j in range(len(sorted_by_z)):
-    #         if sorted_by_z[i][0] >= sorted_by_z[j][0] and sorted_by_z[i][1] < sorted_by_z[j][0]:
-    #             if handle_depth_overlapping(sorted_by_z[i][2], sorted_by_z[j][2]):
-    #                 key = (sorted_by_z[i][3], sorted_by_z[j][3])
-    #                 if key not in library:
-    #                     temp = sorted_by_z[i]
-    #                     sorted_by_z[i] = sorted_by_z[j]
-    #                     sorted_by_z[j] = temp
-    #                     library[key] = 5
-    # local_figures = []
-    # for i in sorted_by_z:
-    #     local_figures.append(i[2])
-    return figure
+    return result, order
 
 def fun(sorted_by_z):
     if len(sorted_by_z) <= 1:
@@ -215,6 +186,7 @@ for i in range(len(figure)):
 
 mouse_start_pos = None
 figure = move((0,0,2500), figure)
+start_condition = True
 while running:
     move_matrix = [0,0,0]
     rotation_matrix = [0,0,0]
@@ -272,15 +244,21 @@ while running:
         if pressed[pygame.K_i]:
             d += 5
     screen.fill((0, 0, 0))
-    if not (move_matrix[0] == 0 and move_matrix[1] == 0 and move_matrix == 0):
+    if not (move_matrix[0] == 0 and move_matrix[1] == 0 and move_matrix[2] == 0) or start_condition:
         figure = move(move_matrix,figure)
     figure = rotation(rotation_matrix, figure)
-    figure = sortFigure(figure)
+    if not (move_matrix[0] == 0 and move_matrix[1] == 0 and move_matrix[2] == 0) or not (rotation_matrix[0] == 0 and rotation_matrix[1] == 0 and rotation_matrix[2] == 0) or start_condition:
+            figure, order = sortFigure(figure)
+            copyColor = []
+            for i in order:
+                copyColor.append(color[i])
+            color = copyColor
     for i in range(len(figure)):
         drawFigure(figure[i], color[i])
 
     # Update the display
     pygame.display.flip()
+    start_condition = True
 
 # Quit Pygame
 pygame.quit()
