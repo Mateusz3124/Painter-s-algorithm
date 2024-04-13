@@ -32,7 +32,7 @@ def findBorder(figure):
         y[1] = max(y[1], i[1])
     return (x,y)
 
-def containts_border(border_one, border_two):
+def border_overlap(border_one, border_two):
     if border_one[0][0] > border_two[0][1]:
         return False
     if border_one[0][1] < border_two[0][0]:
@@ -57,12 +57,56 @@ def calc_plane(a, b, c):
         return None                
     return (nx, ny, nz, -nx*a[0]-ny*a[1]-nz*a[2])
 
-def calc_value(var, value):
+def calc_what_side_of_plane(var, value):
     sum = 0
     for i in range(len(value)):
         sum += value[i] * var[i]
     sum += var[3]
     return sum
+
+def middle_point(point1, point2):
+
+    middle_x = (point1[0] + point2[0]) / 2
+    middle_y = (point1[1] + point2[1]) / 2
+    middle_z = (point1[2] + point2[2]) / 2
+    
+    return [middle_x, middle_y, middle_z]
+
+def devideFigureTwoParts(figure_one, n):
+    size = len(figure_one[2])
+    start = middle_point(figure_one[2][n], figure_one[2][n + 1])
+    half = int(size /2)
+    figure_one_first_part = []
+    figure_one_first_part.append(start)
+    for i in range(n + 1, n + half + 1):
+        figure_one_first_part.append(figure_one[2][i % size])
+        
+    end = middle_point(figure_one[2][(n + half) % size], figure_one[2][(n + half + 1) % size])
+    figure_one_first_part.append(end)
+    figure_one_second_part = []
+    figure_one_second_part.append(end)
+    for i in range(n + half + 1, n + size):
+        figure_one_second_part.append(figure_one[2][i % size])
+    figure_one_second_part.append(figure_one[2][(n + size) % size])
+    figure_one_second_part.append(start)
+
+    min_z = min(node[2] for node in figure_one_first_part)
+    max_z = max(node[2] for node in figure_one_first_part)
+
+    fun_one_figure = [max_z, min_z, figure_one_first_part]
+
+    min_z = min(node[2] for node in figure_one_second_part)
+    max_z = max(node[2] for node in figure_one_second_part)
+
+    fun_two_figure = [max_z, min_z, figure_one_second_part]
+
+    return(fun_one_figure, fun_two_figure)
+
+def devideFigureFourParts(figure_one):
+    devided = devideFigureTwoParts(figure_one, 0)
+    devided_01 = devideFigureTwoParts(devided[0], 1)
+    devided_23 = devideFigureTwoParts(devided[1], 1)
+    return devided_01, devided_23
 
 def handle_depth_overlapping(figure_one, figure_two):
     if figure_one[1] > figure_two[0]:
@@ -73,47 +117,85 @@ def handle_depth_overlapping(figure_one, figure_two):
 
     border_one = findBorder(curren_figure_one)
     border_two = findBorder(current_figure_two)
-    if not containts_border(border_one, border_two):
+    if not border_overlap(border_one, border_two):
         return False
     cond = True
     mapped_one = []
     for i in curren_figure_one:
         if(i[2] < 0):
             cond = False
-            break
+            return False
         mapped_one.append(map(i))
     mapped_two = []
     for i in current_figure_two:
         if(i[2] < 0):
             cond = False
-            break
+            return False
         mapped_two.append(map(i))
     if cond:
-        border_one = findBorder(mapped_one)
-        border_two = findBorder(mapped_two)
-        if not containts_border(border_one, border_two):
+        border_one_map = findBorder(mapped_one)
+        border_two_map = findBorder(mapped_two)
+        if not border_overlap(border_one_map, border_two_map):
             return False
     plane_one = calc_plane(curren_figure_one[0],curren_figure_one[1],curren_figure_one[2])
     plane_two = calc_plane(current_figure_two[0],current_figure_two[1],current_figure_two[2])
-    value_one_camera = calc_value(plane_one, [0,0,0])
-    value_two_camera = calc_value(plane_two, [0,0,0])
+    if not plane_one or not plane_two:
+        x = 1
+    value_one_camera = calc_what_side_of_plane(plane_one, [0,0,0])
+    value_two_camera = calc_what_side_of_plane(plane_two, [0,0,0])
     cond_test_3 = True
     for el in curren_figure_one:
-        if -0.001 <= calc_value(plane_two,el) <= 0.001:
+        if -0.001 <= calc_what_side_of_plane(plane_two,el) <= 0.001:
             continue
-        if value_two_camera * calc_value(plane_two,el) > 0:
+        if value_two_camera * calc_what_side_of_plane(plane_two,el) > 0:
             cond_test_3 = False
     if cond_test_3:
         return False
     cond_test_4 = True
     for el in current_figure_two:
-        if -0.001 <= calc_value(plane_one,el) <= 0.001:
+        if -0.001 <= calc_what_side_of_plane(plane_one,el) <= 0.001:
             continue
-        if value_one_camera * calc_value(plane_one,el) < 0:
+        if value_one_camera * calc_what_side_of_plane(plane_one,el) < 0:
             cond_test_4 = False
     if cond_test_4:
         return False
-    return True
+    
+    cond_test_5 = True
+    for el in current_figure_two:
+        if -0.001 <= calc_what_side_of_plane(plane_one,el) <= 0.001:
+            continue
+        if value_one_camera * calc_what_side_of_plane(plane_one,el) > 0:
+            cond_test_5 = False
+    if cond_test_5:
+        return True
+    
+    cond_test_6 = True
+    for el in curren_figure_one:
+        if -0.001 <= calc_what_side_of_plane(plane_two,el) <= 0.001:
+            continue
+        if value_two_camera * calc_what_side_of_plane(plane_two,el) < 0:
+            cond_test_6 = False
+    if cond_test_6:
+        return True
+    
+    area_one = abs(border_one[0][1] - border_one[0][0]) * abs(border_one[1][1] - border_one[1][0])
+    area_two = abs(border_two[0][1] - border_two[0][0]) * abs(border_two[1][1] - border_two[1][0])
+    if area_one > area_two:
+        devidedFigure = devideFigureFourParts(figure_one)
+
+        checkOne = handle_depth_overlapping(devidedFigure[0][0], figure_two)
+        checkTwo = handle_depth_overlapping(devidedFigure[0][1], figure_two)
+        checkThree = handle_depth_overlapping(devidedFigure[1][0], figure_two)
+        checkFour = handle_depth_overlapping(devidedFigure[1][0], figure_two)
+    else:
+        devidedFigure = devideFigureFourParts(figure_two)
+
+        checkOne = handle_depth_overlapping(figure_one, devidedFigure[0][0])
+        checkTwo = handle_depth_overlapping(figure_one, devidedFigure[0][1])
+        checkThree = handle_depth_overlapping(figure_one, devidedFigure[1][0])
+        checkFour = handle_depth_overlapping(figure_one, devidedFigure[1][1])
+
+    return checkOne or checkTwo or checkThree or checkFour
 
 def sortFigure(figure):
     sorted_by_z = []
