@@ -258,7 +258,7 @@ while running:
 
     # Update the display
     pygame.display.flip()
-    start_condition = True
+    start_condition = False
 
 # Quit Pygame
 pygame.quit()
