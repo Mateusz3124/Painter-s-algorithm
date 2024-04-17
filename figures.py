@@ -4,8 +4,8 @@ def createFigures():
     # x, y, z
     points.append((-50, 300,400))
     points.append((400, 300,400))
-    points.append((500, 700,400))
-    points.append((100,700,400))
+    points.append((500, 850,400))
+    points.append((100,850,400))
 
     points2 = []
     # x, y, z
@@ -18,8 +18,8 @@ def createFigures():
     # x, y, z
     points3.append((-600, 300,1100))
     points3.append((-1000, 300,1100))
-    points3.append((-1000, 900,900))
-    points3.append((-600,900,900))
+    points3.append((-1000, 1000,900))
+    points3.append((-600,1000,900))
 
     points4 = []
     # x, y, z

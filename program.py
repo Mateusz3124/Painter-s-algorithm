@@ -117,8 +117,8 @@ def handle_depth_overlapping(figure_one, figure_two):
 
     border_one = findBorder(curren_figure_one)
     border_two = findBorder(current_figure_two)
-    if not border_overlap(border_one, border_two):
-        return False
+    # if not border_overlap(border_one, border_two):
+    #     return False
     cond = True
     mapped_one = []
     for i in curren_figure_one:
@@ -214,17 +214,32 @@ def sortFigure(figure):
     result = []
     order = []
     while len(sorted_by_z) != 0:
+        repeat = True
         for i in range(len(sorted_by_z)):
             cond = True
-            for j in range(i + 1, len(sorted_by_z)):
+            for j in range(len(sorted_by_z)):
                 if i != j:
                     if handle_depth_overlapping(sorted_by_z[i],sorted_by_z[j]):
                         cond = False
             if cond:
+                repeat = False
                 result.append(sorted_by_z[i][2])
                 order.append(sorted_by_z[i][3])
                 sorted_by_z.remove(sorted_by_z[i])
                 break
+        if repeat:
+            for i in range(len(sorted_by_z)):
+                cond = True
+                for j in range(i + 1,len(sorted_by_z)):
+                    if i != j:
+                        if handle_depth_overlapping(sorted_by_z[i],sorted_by_z[j]):
+                            cond = False
+                if cond:
+                    repeat = False
+                    result.append(sorted_by_z[i][2])
+                    order.append(sorted_by_z[i][3])
+                    sorted_by_z.remove(sorted_by_z[i])
+                    break
     return result, order
 
 def fun(sorted_by_z):
